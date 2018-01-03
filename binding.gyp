@@ -59,6 +59,11 @@
                 "crypto/aesb.c",
                 "crypto/wild_keccak.cpp",
             ],
+            'xcode_settings': {
+                'OTHER_CFLAGS': [
+                  '-maes -march=native'
+                ],
+            },
             "include_dirs": [
                 "crypto",
             ],

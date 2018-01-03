@@ -186,9 +186,24 @@ static inline void ExpandAESKey256(char *keybuf)
 
 void cryptonight_hash(const char *input, char *output, uint32_t len)
 {
-	struct cryptonight_ctx *ctx = (struct cryptonight_ctx *)mmap(0, sizeof(struct cryptonight_ctx), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0);
+	int allocFlags = 0;
+	int madviseFlags = 0;
+
+	#ifdef MAP_HUGETLB
+	allocFlags |= MAP_HUGETLB;
+	#endif
+
+	#ifdef MAP_POPULATE
+	allocFlags |= MAP_POPULATE;
+	#endif
+
+	#ifdef MADV_HUGEPAGE
+	madviseFlags |= MADV_HUGEPAGE;
+	#endif
+
+	struct cryptonight_ctx *ctx = (struct cryptonight_ctx *)mmap(0, sizeof(struct cryptonight_ctx), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | allocFlags, 0, 0);
 	if(ctx == MAP_FAILED) ctx = (struct cryptonight_ctx *)malloc(sizeof(struct cryptonight_ctx));
-	madvise(ctx, sizeof(struct cryptonight_ctx), MADV_RANDOM | MADV_WILLNEED | MADV_HUGEPAGE);
+	madvise(ctx, sizeof(struct cryptonight_ctx), MADV_RANDOM | MADV_WILLNEED | madviseFlags);
 	
     hash_process(&ctx->state.hs, (const uint8_t*) input, len);
     uint8_t ExpandedKey[256];
